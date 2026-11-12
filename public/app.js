@@ -183,13 +183,15 @@ function renderDetail(c) {
     const rows = c.audit.checks
       .map(
         (ch) =>
-          `<tr><td>${esc(ch.name)}</td><td class="check-${esc(ch.status)}">${esc(ch.status.toUpperCase())}</td><td>${esc(ch.detail)}</td></tr>`
+          `<tr><td>${esc(ch.name)}</td><td><span class="check-pill check-${esc(ch.status)}">${esc(ch.status.toUpperCase())}</span></td><td>${esc(ch.detail)}</td></tr>`
       )
       .join("");
+    const verdictClass = c.audit.decision === "APPROVE" ? "verdict-approve" : "verdict-reject";
+    const verdictWord = c.audit.decision === "APPROVE" ? "APPROVED" : "REJECTED";
     trail.innerHTML = `
+      <div class="verdict ${verdictClass}"><span>${verdictWord}</span><small>Decision: ${esc(c.audit.decision)} — the gate ${c.audit.decision === "APPROVE" ? "opens" : "stays shut"}</small></div>
       <h3>Audit trail</h3>
       <p>Checker: ${esc(c.audit.checker)} · ran ${esc(c.audit.ranAt)}</p>
-      <p><strong>Decision: ${esc(c.audit.decision)}</strong></p>
       <ul>${c.audit.reasons.map((r) => `<li>${esc(r)}</li>`).join("")}</ul>
       <table><thead><tr><th>Check</th><th>Result</th><th>Detail</th></tr></thead>
       <tbody>${rows}</tbody></table>
