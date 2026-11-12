@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proof Gate — no proof, no money</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <h1>Proof Gate</h1>
+  <p class="tagline">An AI agent presents its case. A skeptical checker verifies the proof. Only then does PayPal move.</p>
+  <div id="configBanner" class="banner">Loading configuration…</div>
+</header>
+
+<main>
+  <section class="card">
+    <h2>1. Submit a payment case</h2>
+    <div class="grid">
+      <label>Agent ID (who is asking)
+        <input id="agentId" type="text" placeholder="research-writer-agent">
+      </label>
+      <label>Payee (who gets paid)
+        <input id="payee" type="text" placeholder="Abdelrahman El Sayad">
+      </label>
+      <label>Payee email (for the PayPal invoice)
+        <input id="payeeEmail" type="email" placeholder="payee@example.com">
+      </label>
+      <label>Amount
+        <input id="amount" type="number" min="0" step="0.01" placeholder="250">
+      </label>
+      <label>Currency
+        <select id="currency">
+          <option>USD</option>
+          <option>EUR</option>
+          <option>GBP</option>
+        </select>
+      </label>
+    </div>
+    <label class="block">Purpose — what is this payment for?
+      <textarea id="purpose" rows="2" placeholder="Prepared and published the preprint and its public record"></textarea>
+    </label>
+    <label class="block">Authorization claim — who authorized this, and on what basis?
+      <textarea id="authorizationClaim" rows="2" placeholder="Authorized by Dana Whitfield, Operations Manager at Northwind Studio…"></textarea>
+    </label>
+    <p class="muted">Leave the authorization blank if you want to see the gate kill the case — that is the
+      “Permission in the Blank” failure mode, and the auditor is built to catch it.</p>
+
+    <h3>Evidence</h3>
+    <div id="evidenceRows"></div>
+    <button id="addEvidenceBtn" type="button" class="secondary">+ Add evidence</button>
+
+    <div class="row">
+      <button id="submitCaseBtn" type="button">Submit case</button>
+      <button id="seedBtn" type="button" class="secondary">Load demo cases (1 legit, 1 attack)</button>
+    </div>
+    <p id="submitError" class="error" hidden></p>
+  </section>
+
+  <section class="card">
+    <h2>2. Cases</h2>
+    <div id="caseList" class="case-list"><p class="muted">No cases yet.</p></div>
+  </section>
+
+  <section class="card" id="detailCard" hidden>
+    <h2>3. Case detail &amp; audit trail</h2>
+    <div id="caseDetail"></div>
+    <div class="row">
+      <button id="auditBtn" type="button">Run Evidence Auditor</button>
+      <button id="runBtn" type="button">Run gate (audit + release if approved)</button>
+      <button id="releaseBtn" type="button" class="secondary">Release payment</button>
+    </div>
+    <p id="actionError" class="error" hidden></p>
+    <div id="auditTrail"></div>
+  </section>
+</main>
+
+<footer>
+  <p class="muted">Proof Gate · PayPal AI Hackathon · The checker is a deterministic rule-based
+  Evidence Auditor (no AI model) that fetches and reads the cited sources itself.
+  Release = a PayPal sandbox invoice created and sent to the payee, only after an APPROVE decision.
+  A rejected case has no payment path. Built on the failure mode named in
+  “Permission in the Blank” (Elsayad, 2026, Zenodo record 23994480).</p>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>
