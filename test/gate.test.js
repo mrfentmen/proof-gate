@@ -195,6 +195,54 @@ test("release with a working PayPal client: invoice created+sent, case released"
   );
 });
 
+test("release: real PayPal create shape (HATEOAS link, no id field) still releases", async () => {
+  // Verified live 2026-11-12: POST /v2/invoicing/invoices answers 201
+  // with { rel, href, method } only — the invoice id lives in href.
+  const store = tempStore();
+  const record = store.add(legitInput());
+  await runAudit(store, record.id);
+  const stubFetch = async (url, opts = {}) => {
+    if (url.includes("/v1/oauth2/token")) {
+      return { ok: true, status: 200, text: async () => JSON.stringify({ access_token: "tok", expires_in: 3600 }) };
+    }
+    if (url.endsWith("/v2/invoicing/invoices")) {
+      return {
+        ok: true,
+        status: 201,
+        text: async () =>
+          JSON.stringify({
+            rel: "self",
+            href: "https://api.sandbox.paypal.com/v2/invoicing/invoices/INV2-HATEOAS-1",
+            method: "GET",
+          }),
+      };
+    }
+    if (url.includes("/send")) {
+      return { ok: true, status: 202, text: async () => "" };
+    }
+    if (url.includes("/v2/invoicing/invoices/")) {
+      return {
+        ok: true,
+        status: 200,
+        text: async () =>
+          JSON.stringify({
+            id: "INV2-HATEOAS-1",
+            status: "SENT",
+            links: [{ rel: "payer-view", href: "https://www.sandbox.paypal.com/invoice/payerView/INV2-HATEOAS-1" }],
+          }),
+      };
+    }
+    throw new Error(`unexpected URL ${url}`);
+  };
+  const client = new PayPalClient(
+    { PAYPAL_CLIENT_ID: "id", PAYPAL_CLIENT_SECRET: "secret", PAYPAL_ENV: "sandbox" },
+    stubFetch
+  );
+  const { record: updated, release } = await releaseCase(store, record.id, client);
+  assert.equal(updated.status, "released");
+  assert.equal(release.paypalInvoiceId, "INV2-HATEOAS-1");
+});
+
 test("release: approved case with no payee email cannot be invoiced (422)", async () => {
   const store = tempStore();
   const input = legitInput();
