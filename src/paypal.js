@@ -98,8 +98,19 @@ export class PayPalClient {
   }
 
   // POST /v2/invoicing/invoices — creates a draft invoice.
+  // The real API answers 201 with a HATEOAS link object
+  // ({ rel, href, method }), NOT a body with an id field: the new
+  // invoice's id is the last path segment of href. Normalize here so
+  // callers always get { id, ... } (verified live 2026-11-12: reading
+  // .id off the raw response sent the follow-up calls to
+  // /invoices/undefined/... and PayPal answered 404).
   async createInvoice(payload) {
-    return this.request("/v2/invoicing/invoices", { method: "POST", body: payload });
+    const res = await this.request("/v2/invoicing/invoices", { method: "POST", body: payload });
+    if (res && !res.id && typeof res.href === "string") {
+      const id = res.href.split("/").filter(Boolean).pop();
+      if (id) return { ...res, id };
+    }
+    return res;
   }
 
   // POST /v2/invoicing/invoices/{id}/send — sends it to the recipient.
